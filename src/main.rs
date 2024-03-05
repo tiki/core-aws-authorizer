@@ -1,6 +1,8 @@
 use aws_lambda_events::apigw::{
   ApiGatewayCustomAuthorizerRequest,
-  ApiGatewayCustomAuthorizerResponse
+  ApiGatewayCustomAuthorizerResponse,
+  ApiGatewayCustomAuthorizerPolicy, 
+  IamPolicyStatement,
 };
 
 use lambda_runtime::{run, service_fn, Error, LambdaEvent};
@@ -13,7 +15,8 @@ mod iam_policy;
 
 #[derive(Serialize, Deserialize)]
 pub struct AuthContext {
-  text: String,
+  provider: String,
+  address: String
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -50,10 +53,10 @@ async fn function_handler(
   let token: String  = event.payload.authorization_token.unwrap();
 
   let token_data: Result<jsonwebtoken::TokenData<Claims>, anyhow::Error> = jwt_service::validate_token(&token);
+  
+  let resp = iam_policy::prepare_response(token_data);
 
-  let response: ApiGatewayCustomAuthorizerResponse<AuthContext> = iam_policy::prepare_response(token_data)?;
-
-  return Ok(response)
+  return Ok(resp.unwrap());
 }
 
 #[tokio::main]
