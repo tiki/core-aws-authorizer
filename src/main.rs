@@ -12,6 +12,7 @@ use aws_lambda_events::apigw::{
 };
 
 use lambda_runtime::{run, service_fn, Error, LambdaEvent};
+use serde::{Deserialize, Serialize};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -33,13 +34,23 @@ async fn function_handler(
   event: LambdaEvent<ApiGatewayCustomAuthorizerRequestTypeRequest>,
 ) -> Result<ApiGatewayCustomAuthorizerResponse<AuthContext>, Error> {
 
-  let validation = jwt::validate(event);
+  let validation = jwt::validate(&event);
 
-  return iam::policy(event, validation);
+  return Ok(iam::policy(&event, validation));
 }
-
+#[derive(Serialize, Deserialize, Clone, Debug)]
 struct AuthContext{
+  role: String,
   id: String,
+}
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct Payload {
+    aud: String,
+    exp: usize,
+    iat: usize,
+    iss: String,
+    sub: String,
+    scp: Vec<String>,
 }
 
 #[cfg(test)]

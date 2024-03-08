@@ -6,7 +6,8 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.75"
 aws_lambda_events = "0.15.0"
-jwt-compact = "0.8.0"
+chrono = "0.4.35"
+jwt-compact = {version = "0.8.0-beta.1", features = ["p256", "k256"] }
 lambda_runtime = "0.6.0"
 
 serde = "1.0.136"

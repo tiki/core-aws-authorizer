@@ -2,95 +2,72 @@
  * Copyright (c) TIKI Inc.
  * MIT license. See LICENSE file in root directory.
  */
+
+use chrono::Duration;
+
 use aws_lambda_events::apigw::ApiGatewayCustomAuthorizerRequestTypeRequest;
 use lambda_runtime::{LambdaEvent, Error};
 use jwt_compact::{alg::Es256, jwk::JsonWebKey, prelude::*, Algorithm};
+use crate::{AuthContext, Payload};
 
 type PublicKey = <Es256 as Algorithm>::VerifyingKey;
 
 pub fn validate(
-  event: LambdaEvent<ApiGatewayCustomAuthorizerRequestTypeRequest>,
-) -> Result<String, Error> {
+  event: &LambdaEvent<ApiGatewayCustomAuthorizerRequestTypeRequest>,
+) -> Result<AuthContext, Error> {
 
   let token: String = event.payload.headers
     .get("Authorization")
     .unwrap()
     .to_str()
     .unwrap()
-    .to_owned();
+    .to_owned()
+    .replace("Bearer ", "");
 
-let endpoint: String = event.payload.path.unwrap();
+  let endpoint: String = event.payload.path.as_ref().unwrap().to_string();
 
-let method = event.payload.method_arn.unwrap();
+  let key = "";
 
-decode(req, key, config)
-  .map_err(|error| -> Box<dyn Error> {
-    match error.downcast_ref::<ErrorBuilder>() {
-          Some(e) => e.to_error(),
-          None => ErrorBuilder::new()
-              .status(403)
-              .message("Invalid JWT")
-              .detail(&error.to_string())
-              .to_error(),
-      }
-    })
-  }
-
-fn decode(token: String, key: &str, config: Config) -> Result<Token<Payload>, Box<dyn Error>> {
-  if token.is_none() {
-      return Err(ErrorBuilder::new()
-          .status(403)
-          .help("Missing token in header")
-          .to_error());
-  }
-  let token = token.unwrap().replace("Bearer ", "");
   let jwk: JsonWebKey = serde_json::from_str(key)?;
   let public_key = PublicKey::try_from(&jwk)?;
   let token = UntrustedToken::new(&token)?;
   let token: Token<Payload> = Es256.validator(&public_key).validate(&token)?;
-  match validate_claims(&token, config) {
-      Ok(_) => Ok(token),
-      Err(error) => Err(error),
-  }
+  return claims(&token, endpoint)
 }
 
-fn validate_claims(token: &Token<Payload>, config: Config) -> Result<(), Box<dyn Error>> {
 
-  let time_options = TimeOptions::from_leeway(Duration::seconds(config.clock_skew));
+fn claims(token: &Token<Payload>, aud: String) -> Result<AuthContext, Error> {
+
+  let time_options = TimeOptions::from_leeway(Duration::seconds(60));
   token.claims().validate_expiration(&time_options)?;
 
   if token.claims().not_before.is_some() {
       token.claims().validate_maturity(&time_options)?;
   }
 
-  if config.audience.is_some()
-      && !token
-          .claims()
-          .custom
-          .audience
-          .contains(&config.audience.unwrap())
+  if !token
+      .claims()
+      .custom
+      .aud
+      .contains(&aud)
   {
-      return Err(ErrorBuilder::new()
-          .status(403)
-          .message("Invalid JWT")
-          .detail("Invalid AUD claim")
-          .to_error());
+    return Err("Invalid AUD claim".into());
   }
 
-  if config.issuer.is_some() && token.claims().custom.issuer != config.issuer.unwrap() {
-      return Err(ErrorBuilder::new()
-          .status(403)
-          .message("Invalid JWT")
-          .detail("Invalid ISS claim")
-          .properties(HashMap::from([(
-              String::from("iss"),
-              token.claims().custom.issuer.clone(),
-          )]))
-          .to_error());
+  if token.claims().custom.iss != "https://mytiki.com" {
+    return Err("Invalid iss claim".into());
   }
-  Ok(())
+
+  if token.claims().custom.scp.contains(&"publish".to_string()) {
+    return Err("Invalid scp claim".into());
+  }
+
+  let mut splitter = token.claims().custom.sub.splitn(2, ':');
+  let role = splitter.next().unwrap();
+  let id = splitter.next().unwrap();
+  
+  Ok(AuthContext{
+    role: role.to_string(),
+    id: id.to_string()
+  })
 }
-
-// fn sub(){
-//   internal:<id> ,user:<userid>, and provider:<providerid>
-// }
