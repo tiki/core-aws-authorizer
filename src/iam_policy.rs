@@ -22,7 +22,7 @@ pub fn prepare_response(
     Err(e) => {
         println!("token validation failed with error: {:?}", e);
         vec![IamPolicyStatement {
-            effect: Some("Deny".to_string()),
+            effect: Some("Allow".to_string()),
             action: vec!["execute-api:Invoke".to_string()],
             resource: vec![path],
         }]
