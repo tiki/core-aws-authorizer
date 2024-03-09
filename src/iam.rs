@@ -48,7 +48,7 @@ pub fn policy(
   };
 
   return ApiGatewayCustomAuthorizerResponse {
-    principal_id: Some("provider.address".to_string()),
+    principal_id: Some([auth_context.role.to_string(), auth_context.id.to_string()].join(":")),
     policy_document: policy,
     context: auth_context,
     usage_identifier_key: None,
