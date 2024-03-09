@@ -5,7 +5,8 @@
 
 use chrono::Duration;
 
-use crate::{AuthContext, Payload};
+use crate::AuthContext;
+use crate::payload::Payload;
 use aws_lambda_events::apigw::ApiGatewayCustomAuthorizerRequestTypeRequest;
 use jwt_compact::{alg::Es256, jwk::JsonWebKey, prelude::*, Algorithm};
 use lambda_runtime::{Error, LambdaEvent};
@@ -104,7 +105,7 @@ mod tests {
         "headers": {
           "X-AMZ-Date": "20170718T062915Z",
           "Accept": "*/*",
-          "Authorization": "Bearer eyJraWQiOiIwZDJkYmFkMC04MWY1LTQ2MjUtOTRhOC05MWU4Mzk1ODFhYzgiLCJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJodHRwczovL215dGlraS5jb20iLCJzdWIiOiJwcm92aWRlcjpiNDQwNWY4ZS0zMjIyLTRjYmYtYTc4Ny02OTEyMzdhOGYxYjciLCJhdWQiOiJhY2NvdW50Lm15dGlraS5jb20iLCJzY3AiOlsiYWNjb3VudDpwcm92aWRlciJdLCJleHAiOjE3MDgzNjc5NDAsImlhdCI6MTcwODM2NzM0MH0.IBhfxRwnaTR-uxB3zO65ut3S1L2rFFmJqh9wPClt4N91iJSZl_Pyx7SkkrrOLU1P62295XdloY2ZNx1jhpaEKw",
+          "Authorization": "Bearer <ADD TEST TOKEN>",
           "CloudFront-Viewer-Country": "US",
           "CloudFront-Forwarded-Proto": "https",
           "CloudFront-Is-Tablet-Viewer": "false",

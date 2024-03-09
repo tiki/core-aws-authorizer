@@ -2,6 +2,7 @@
  * Copyright (c) TIKI Inc.
  * MIT license. See LICENSE file in root directory.
  */
+
 use crate::AuthContext;
 
 use aws_lambda_events::apigw::{

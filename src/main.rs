@@ -5,6 +5,10 @@
 
 mod iam;
 mod jwt;
+mod auth_context;
+mod payload;
+
+use auth_context::AuthContext;
 
 use aws_lambda_events::apigw::{
     ApiGatewayCustomAuthorizerRequestTypeRequest,
@@ -12,7 +16,6 @@ use aws_lambda_events::apigw::{
 };
 
 use lambda_runtime::{run, service_fn, Error, LambdaEvent};
-use serde::{Deserialize, Serialize};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -38,29 +41,4 @@ async fn function_handler(
 
   return Ok(iam::policy(&event, validation));
 }
-#[derive(Serialize, Deserialize, Clone, Debug)]
-struct AuthContext{
-  role: String,
-  id: String,
-}
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct Payload {
-    aud: String,
-    iss: String,
-    sub: String,
-    scp: Vec<String>,
-}
 
-#[cfg(test)]
-mod tests {
-
-    #[test]
-    fn test_add() {
-        assert_eq!(1+2, 3);
-    }
-
-    #[test]
-    fn test_bad_add() {
-        assert_eq!(1+1, 3);
-    }
-}
