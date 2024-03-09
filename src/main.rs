@@ -46,8 +46,6 @@ struct AuthContext{
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Payload {
     aud: String,
-    exp: usize,
-    iat: usize,
     iss: String,
     sub: String,
     scp: Vec<String>,
