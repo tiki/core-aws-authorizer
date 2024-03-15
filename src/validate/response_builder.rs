@@ -8,40 +8,40 @@ use aws_lambda_events::apigw::{ApiGatewayCustomAuthorizerPolicy, ApiGatewayCusto
 use lambda_runtime::LambdaEvent;
 use super::ResponseContext;
 
+#[derive(Debug)]
 pub struct ResponseBuilder {
-    event: LambdaEvent<ApiGatewayCustomAuthorizerRequestTypeRequest>,
-    result: Result<ResponseContext, Box<dyn Error>>
+    arn: Option<String>,
+    context: Option<ResponseContext>
 }
 
 impl ResponseBuilder {
-    pub fn default() -> Self { Self::default() }
+    pub fn default() -> Self { Self { arn: None, context: None } }
 
-    pub fn for_event(&mut self, event: LambdaEvent<ApiGatewayCustomAuthorizerRequestTypeRequest>) -> &Self {
-        self.event = event;
+    pub fn for_event(mut self, event: LambdaEvent<ApiGatewayCustomAuthorizerRequestTypeRequest>) -> Self {
+        self.arn = event.payload.method_arn;
         self
     }
 
-    pub fn with_result(&mut self, result: Result<ResponseContext, Box<dyn Error>>) -> &Self {
-        self.result = result;
+    pub fn with_result(mut self, result: Result<ResponseContext, Box<dyn Error>>) -> Self {
+        self.context = result.ok();
         self
     }
 
-    pub fn build(&self) -> Result<ApiGatewayCustomAuthorizerResponse<ResponseContext>, Box<dyn Error>> {
-        let arn = self.event.payload.method_arn.as_ref().ok_or("Method ARN missing.")?.to_string();
-        let context = self.result.as_ref().unwrap_or(&ResponseContext::new("", ""));
-        let statement: Vec<IamPolicyStatement> = self.result.as_ref().map_or_else(
-            |_error| {
-                vec![IamPolicyStatement {
-                    effect: Some("Deny".to_string()),
-                    action: vec!["execute-api:Invoke".to_string()],
-                    resource: vec![arn]
-                }]
-            }, |_context| {
-                vec![IamPolicyStatement {
-                    effect: Some("Allow".to_string()),
-                    action: vec!["execute-api:Invoke".to_string()],
-                    resource: vec![arn]}]
-            });
+    pub fn build(self) -> Result<ApiGatewayCustomAuthorizerResponse<ResponseContext>, Box<dyn Error>> {
+        let statement: Vec<IamPolicyStatement> = match self.context { 
+            Some(_) => vec![
+                IamPolicyStatement { 
+                    effect: Some("Allow".to_string()), 
+                    action: vec!["execute-api:Invoke".to_string()], 
+                    resource: vec![self.arn.clone().ok_or("ARN required")?]
+                }],
+            None => vec![
+                IamPolicyStatement { 
+                    effect: Some("Deny".to_string()), 
+                    action: vec!["execute-api:Invoke".to_string()], 
+                    resource: vec![self.arn.clone().ok_or("ARN required")?]
+                }] };
+        let context = self.context.clone().ok_or("Context required")?;
         let response = ApiGatewayCustomAuthorizerResponse {
             context: context.clone(),
             usage_identifier_key: None,

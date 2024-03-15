@@ -22,8 +22,8 @@ impl ResponseContext {
     pub fn from_subject(subject: &str) -> Result<Self, Box<dyn Error>> {
         let mut split = subject.splitn(2, ':');
         Ok(Self {
-            role: split.next()?.to_string(),
-            id: split.next()?.to_string()
+            role: split.next().ok_or("Subject missing role")?.to_string(),
+            id: split.next().ok_or("Subject missing id")?.to_string()
         })
     }
 }
