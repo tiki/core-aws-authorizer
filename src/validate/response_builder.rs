@@ -18,7 +18,7 @@ impl ResponseBuilder {
     pub fn default() -> Self { Self { arn: None, context: None } }
 
     pub fn for_event(mut self, event: LambdaEvent<ApiGatewayCustomAuthorizerRequestTypeRequest>) -> Self {
-        self.arn = event.payload.method_arn;
+        self.arn = event.payload.method_arn.clone();
         self
     }
 
@@ -27,22 +27,23 @@ impl ResponseBuilder {
         self
     }
 
-    pub fn build(self) -> Result<ApiGatewayCustomAuthorizerResponse<ResponseContext>, Box<dyn Error>> {
-        let statement: Vec<IamPolicyStatement> = match self.context { 
-            Some(_) => vec![
-                IamPolicyStatement { 
-                    effect: Some("Allow".to_string()), 
-                    action: vec!["execute-api:Invoke".to_string()], 
-                    resource: vec![self.arn.clone().ok_or("ARN required")?]
+    pub fn build(self) -> ApiGatewayCustomAuthorizerResponse<ResponseContext> {
+        let statement: Vec<IamPolicyStatement> = match self.context.is_some() && self.arn.is_some() {
+            true => vec![
+                IamPolicyStatement {
+                    effect: Some("Allow".to_string()),
+                    action: vec!["execute-api:Invoke".to_string()],
+                    resource: vec![self.arn.clone().unwrap()]
                 }],
-            None => vec![
-                IamPolicyStatement { 
-                    effect: Some("Deny".to_string()), 
-                    action: vec!["execute-api:Invoke".to_string()], 
-                    resource: vec![self.arn.clone().ok_or("ARN required")?]
-                }] };
-        let context = self.context.clone().ok_or("Context required")?;
-        let response = ApiGatewayCustomAuthorizerResponse {
+            false => vec![
+                IamPolicyStatement {
+                    effect: Some("Deny".to_string()),
+                    action: vec!["execute-api:Invoke".to_string()],
+                    resource: vec![self.arn.clone().unwrap_or("*".to_string())]
+                }] 
+        };
+        let context = self.context.clone().unwrap_or(ResponseContext::default());
+        ApiGatewayCustomAuthorizerResponse {
             context: context.clone(),
             usage_identifier_key: None,
             principal_id: Some(context.to_principal()),
@@ -50,7 +51,6 @@ impl ResponseBuilder {
                 version: Some("2012-10-17".to_string()),
                 statement
             }
-        };
-        Ok(response)
+        }
     }
 }

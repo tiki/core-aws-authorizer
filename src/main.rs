@@ -6,11 +6,7 @@
 mod handler;
 mod validate;
 
-use lambda_runtime::{run, service_fn, Error, LambdaEvent};
-use aws_lambda_events::apigw::{
-    ApiGatewayCustomAuthorizerRequestTypeRequest,
-    ApiGatewayCustomAuthorizerResponse
-};
+use lambda_runtime::{run, service_fn, Error};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -19,15 +15,5 @@ async fn main() -> Result<(), Error> {
         .with_target(false)
         .without_time()
         .init();
-    run(service_fn(catch_all)).await
-}
-
-async fn catch_all(
-    event: LambdaEvent<ApiGatewayCustomAuthorizerRequestTypeRequest>
-) -> Result<ApiGatewayCustomAuthorizerResponse<validate::ResponseContext>, Error> {
-    tracing::debug!("{:?}", event);
-    handler::entry(event).await.map_err(|err| {
-        tracing::error!("{:?}", err);
-        Error::from(err.to_string())
-    })
+    run(service_fn(handler::entry)).await
 }

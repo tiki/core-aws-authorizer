@@ -75,11 +75,7 @@ impl Validate {
             let iss = token.claims().custom.iss().clone().unwrap();
             if iss != self.issuer { return Err("Invalid iss claim".into()); }
         }
-
-        // TODO fix SCP claim validation.
-        // if token.claims().custom.scp.contains(&"publish".to_string()) {
-        //     return Err("Invalid scp claim".into());
-        // }
+        
         Ok(token.claims().clone())
     }
 }
