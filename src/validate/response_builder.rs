@@ -26,9 +26,9 @@ impl ResponseBuilder {
         self
     }
 
-    pub fn build(self) -> Result<ApiGatewayCustomAuthorizerResponse<ResponseContext>, Box<dyn Error>> {
+    pub fn build(&self) -> Result<ApiGatewayCustomAuthorizerResponse<ResponseContext>, Box<dyn Error>> {
         let arn = self.event.payload.method_arn.as_ref().ok_or("Method ARN missing.")?.to_string();
-        let context = self.result.unwrap_or(ResponseContext::new("", ""));
+        let context = self.result.as_ref().unwrap_or(&ResponseContext::new("", ""));
         let statement: Vec<IamPolicyStatement> = self.result.as_ref().map_or_else(
             |_error| {
                 vec![IamPolicyStatement {
@@ -43,7 +43,7 @@ impl ResponseBuilder {
                     resource: vec![arn]}]
             });
         let response = ApiGatewayCustomAuthorizerResponse {
-            context,
+            context: context.clone(),
             usage_identifier_key: None,
             principal_id: Some(context.to_principal()),
             policy_document: ApiGatewayCustomAuthorizerPolicy {

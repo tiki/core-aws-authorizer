@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct RequestClaims {
     sub: Option<String>,
-    aud: Option<String>,
+    aud: Option<Vec<String>>,
     iss: Option<String>,
     scp: Option<Vec<String>>,
 }
@@ -16,8 +16,8 @@ pub struct RequestClaims {
 impl RequestClaims {
     pub fn default() -> Self { Self { aud: None, iss: None, sub: None, scp: None, } }
 
-    pub fn aud(&self) -> &Option<String> { &self.aud }
-    pub fn set_aud(&mut self, aud: Option<String>) { self.aud = aud; }
+    pub fn aud(&self) -> &Option<Vec<String>> { &self.aud }
+    pub fn set_aud(&mut self, aud: Option<Vec<String>>) { self.aud = aud; }
 
     pub fn iss(&self) -> &Option<String> { &self.iss }
     pub fn set_iss(&mut self, iss: Option<String>) { self.iss = iss; }

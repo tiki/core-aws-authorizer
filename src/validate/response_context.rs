@@ -3,6 +3,7 @@
  * MIT license. See LICENSE file in root directory.
  */
 
+use std::error::Error;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -18,4 +19,11 @@ impl ResponseContext {
     pub fn id(&self) -> &str { &self.id }
 
     pub fn to_principal(&self) -> String { [self.role.to_string(), self.id.to_string()].join(":") }
+    pub fn from_subject(subject: &str) -> Result<Self, Box<dyn Error>> {
+        let mut split = subject.splitn(2, ':');
+        Ok(Self {
+            role: split.next()?.to_string(),
+            id: split.next()?.to_string()
+        })
+    }
 }
