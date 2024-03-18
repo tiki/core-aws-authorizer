@@ -3,71 +3,39 @@ Transform: AWS::Serverless-2016-10-31
 Description: Core AWS Authorizer
 
 Parameters:
-  Name:
-    Description: Name of the project
-    Type: String
-    Default: core-aws-authorizer
-  Version:
+  Semver:
     Description: Semantic version number
     Type: String
     Default: 0.0.1
-  Log:
-    Description: Bucket name to store logs
-    Type: String
-    Default: mytiki-logs
-  TikiKJWKS:
-    Description: The JWKS String for Authorizer key
-    Type: String
-    Default: "{}"
 
 Resources:
-
-  LambdaExecutionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub "${Name}LambdaExecutionRole"
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action: sts:AssumeRole
-      Policies:
-        - PolicyName: LambdaExecutionPolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*'
-
   Function:
     Type: AWS::Serverless::Function
     Metadata:
       BuildMethod: rust-cargolambda
     Properties:
-      FunctionName: !Ref Name
-      Description: core JWT authorizer function
-      CodeUri: ../..
+      CodeUri: ..
       Handler: bootstrap
       Runtime: provided.al2
       MemorySize: 1024
       Timeout: 900
       Architectures:
         - x86_64
-      Tracing: Active
-      VersionDescription: !Ref Version
-      Environment:
-        Variables:
-          TIKI_JWKS: !Ref TikiKJWKS   # Use TikiKJWKS parameter here
+      FunctionUrlConfig:
+        AuthType: NONE
+        InvokeMode: BUFFERED
+        Cors:
+          AllowCredentials: True
+          AllowOrigins:
+            - "*"
+          AllowMethods:
+            - GET
+            - POST
 
-  FunctionApiGatewayPermission:
-    Type: AWS::Lambda::Permission
+  Version:
+    Type: AWS::Lambda::Version
     Properties:
       FunctionName: !GetAtt Function.Arn
-      Action: lambda:InvokeFunction
-      Principal: apigateway.amazonaws.com
+      Description: !Ref Semver
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 2
