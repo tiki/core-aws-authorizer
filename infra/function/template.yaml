@@ -22,17 +22,7 @@ Parameters:
 
 Resources:
 
-  ApiGateway:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: prod
-      DefinitionBody:
-        swagger: '2.0'
-        info:
-          title: PlaceholderApiGateway
-        paths: {}
-
-  FunctionRole:
+  LambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Sub "${Name}LambdaExecutionRole"
@@ -50,10 +40,6 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - lambda:InvokeFunction
-                Resource: !GetAtt Function.Arn
-              - Effect: Allow
-                Action:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
@@ -66,7 +52,7 @@ Resources:
     Properties:
       FunctionName: !Ref Name
       Description: core JWT authorizer function
-      CodeUri: ../..target/
+      CodeUri: ../..
       Handler: bootstrap
       Runtime: provided.al2
       MemorySize: 1024
@@ -77,12 +63,11 @@ Resources:
       VersionDescription: !Ref Version
       Environment:
         Variables:
-          TIKI_JWKS: !Ref TIKI_JWKS
-      Events:
-        ApiGatewayAuthorizer:
-          Type: Api
-          Properties:
-            RestApiId: !Ref ApiGateway
-            Path: /{proxy+}
-            Method: ANY
-      Role: !GetAtt FunctionRole.Arn
+          TIKI_JWKS: !Ref TikiKJWKS   # Use TikiKJWKS parameter here
+
+  FunctionApiGatewayPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt Function.Arn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
