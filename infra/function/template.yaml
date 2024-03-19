@@ -2,40 +2,35 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Core AWS Authorizer
 
-Parameters:
-  Semver:
-    Description: Semantic version number
-    Type: String
-    Default: 0.0.1
-
 Resources:
   Function:
     Type: AWS::Serverless::Function
     Metadata:
       BuildMethod: rust-cargolambda
     Properties:
-      CodeUri: ..
+      FunctionName: core-aws-authorizer
+      Description: Handles JWT authentication for API Gateway endpoints.
+      VersionDescription: 0.0.1
+      CodeUri: ../..
       Handler: bootstrap
       Runtime: provided.al2
       MemorySize: 1024
       Timeout: 900
+      Environment:
+        Variables:
+          TIKI_JWK: '{"keys":[{"kty":"EC","use":"sig","crv":"P-256","kid":"0d2dbad0-81f5-4625-94a8-91e839581ac8","x":"vcM5IpNurycR5RbOGueTZAWp-FQfAwGUTVY1YwNli_c","y":"-Ag2sVft6NAcSxkvHc2gS5vcB3bdrB66pDPFuS_6u1U","alg":"ES256"}]}'
+          TIKI_ISSUER: https://mytiki.com
+      Tracing: Active
       Architectures:
         - x86_64
-      FunctionUrlConfig:
-        AuthType: NONE
-        InvokeMode: BUFFERED
-        Cors:
-          AllowCredentials: True
-          AllowOrigins:
-            - "*"
-          AllowMethods:
-            - GET
-            - POST
-
-  Version:
-    Type: AWS::Lambda::Version
-    Properties:
-      FunctionName: !GetAtt Function.Arn
-      Description: !Ref Semver
-      ProvisionedConcurrencyConfig:
-        ProvisionedConcurrentExecutions: 2
+      AutoPublishAlias: latest
+      # ProvisionedConcurrencyConfig:
+      #   ProvisionedConcurrentExecutions: 2
+      Policies:         
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - xray:PutTraceSegments
+                - xray:PutTelemetryRecords
+              Resource: "*"
