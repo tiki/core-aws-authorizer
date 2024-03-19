@@ -15,5 +15,6 @@ async fn main() -> Result<(), Error> {
         .with_target(false)
         .without_time()
         .init();
+      
     run(service_fn(handler::entry)).await
 }
