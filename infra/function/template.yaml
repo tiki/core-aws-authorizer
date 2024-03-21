@@ -34,3 +34,12 @@ Resources:
                 - xray:PutTraceSegments
                 - xray:PutTelemetryRecords
               Resource: "*"
+
+  ConfigLambdaPermission:
+    Type: "AWS::Lambda::Permission"
+    DependsOn:
+    - Function
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: core-aws-authorizer
+      Principal: apigateway.amazonaws.com
