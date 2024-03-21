@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 pub struct ResponseContext{
     namespace: String,
     id: String,
-    scopes: Vec<String>
+    scopes: String
 }
 
 impl ResponseContext {
@@ -20,13 +20,13 @@ impl ResponseContext {
         Self { 
             namespace: namespace.to_string(), 
             id: id.to_string(),
-            scopes: vec![]
+            scopes: "".to_string()
         } 
     }
 
     pub fn namespace(&self) -> &str { &self.namespace }
     pub fn id(&self) -> &str { &self.id }
-    pub fn scopes(&self) -> &Vec<String> { &self.scopes }
+    pub fn scopes(&self) -> &String { &self.scopes }
     
     pub fn to_principal(&self) -> String { [self.namespace.to_string(), self.id.to_string()].join(":") }
     pub fn from_subject(subject: &str) -> Result<Self, Box<dyn Error>> {
@@ -34,13 +34,18 @@ impl ResponseContext {
         Ok(Self {
             namespace: split.next().ok_or("Subject missing role")?.to_string(),
             id: split.next().ok_or("Subject missing id")?.to_string(),
-            scopes: vec![]
+            scopes: "".to_string()
         })
     }
-    pub fn with_scopes(mut self, scopes: &mut Vec<String>) -> Self {
-        let mut scp = self.scopes;
-        scp.append(scopes);
-        self.scopes = scp;
-        self
+
+    pub fn with_scopes(&self, scopes: &mut Vec<String>) -> Self {
+      let scp_str = self.scopes.clone();
+      let mut scp: Vec<&str> = scp_str.split(" ").collect();
+      let mut new_scopes: Vec<&str> = scopes.iter().map(|s| { let s: &str = s; s }).collect();
+      scp.append(&mut new_scopes);
+      scp.sort_unstable();
+      scp.dedup();
+      let new_scopes = scp.join(" ");
+      self.clone()
     }
 }
