@@ -1,8 +1,8 @@
 version = 0.1
 
 [default.global.parameters]
-stack_name = "core-aws-authorizer"
-s3_bucket = "com.mytiki.core.bucket"
+stack_name = "core-aws-authorizer-function"
+s3_bucket = "mytiki-core-ocean-cf-deploy"
 s3_prefix = "core/aws/authorizer/function"
 region = "us-east-2"
 

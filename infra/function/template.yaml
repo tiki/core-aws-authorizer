@@ -24,9 +24,9 @@ Resources:
       Architectures:
         - x86_64
       AutoPublishAlias: latest
-      # ProvisionedConcurrencyConfig:
-      #   ProvisionedConcurrentExecutions: 2
-      Policies:         
+      ProvisionedConcurrencyConfig:
+        ProvisionedConcurrentExecutions: 2
+      Policies:
         - Version: "2012-10-17"
           Statement:
             - Effect: Allow
@@ -38,7 +38,7 @@ Resources:
   ConfigLambdaPermission:
     Type: "AWS::Lambda::Permission"
     DependsOn:
-    - Function
+      - Function
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: core-aws-authorizer
