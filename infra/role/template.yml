@@ -48,3 +48,18 @@ Resources:
               - s3:GetObjectVersion
             Resource:
               - arn:aws:s3:::mytiki-core-ocean-cf-deploy/*
+          - Effect: Allow
+            Action:
+              - iam:CreateRole
+              - iam:GetRole
+              - iam:UpdateRole
+              - iam:DeleteRole
+              - iam:TagRole
+              - iam:GetRolePolicy
+              - iam:PutRolePolicy
+              - iam:DeleteRolePolicy
+              - iam:AttachRolePolicy
+              - iam:DetachRolePolicy
+              - iam:UpdateAssumeRolePolicy
+            Resource:
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/core-aws-authorizer-*
