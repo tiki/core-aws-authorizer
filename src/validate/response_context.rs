@@ -33,7 +33,7 @@ impl ResponseContext {
         let mut split = subject.splitn(2, ':');
         Ok(Self {
             namespace: split.next().ok_or("Subject missing role")?.to_string(),
-            id: split.next().ok_or("Subject missing id")?.to_string(),
+            id: split.next().ok_or("Subject missing id")?.to_string().replace(":", "/"),
             scopes: "".to_string()
         })
     }
