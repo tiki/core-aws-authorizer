@@ -17,6 +17,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Cargo Lambda
+        uses: zerj9/setup-cargo-lambda@v0.1.0
+
       - uses: aws-actions/setup-sam@v2
         with:
           use-installer: true
