@@ -63,3 +63,12 @@ Resources:
               - iam:UpdateAssumeRolePolicy
             Resource:
               - !Sub arn:aws:iam::${AWS::AccountId}:role/core-aws-authorizer-*
+          - Effect: Allow
+            Action:
+              - lambda:CreateFunction
+              - lambda:TagResource
+              - lambda:GetFunction
+              - lambda:UpdateFunctionCode
+              - lambda:ListTags
+              - lambda:UpdateFunctionConfiguration
+            Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:core-aws-authorizer
