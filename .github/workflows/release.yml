@@ -47,7 +47,7 @@ jobs:
           cd infra/role
           sam build
           sam package
-          sam deploy
+          sam deploy --no-fail-on-empty-changeset
 
       - name: AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -61,7 +61,7 @@ jobs:
           cd infra/function
           sam build
           sam package
-          sam deploy
+          sam deploy --no-fail-on-empty-changeset
 
       - name: Get Version
         id: semver
