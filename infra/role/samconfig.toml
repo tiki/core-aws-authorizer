@@ -1,21 +1,16 @@
 version = 0.1
 
 [default.global.parameters]
-stack_name = "core-aws-authorizer-function"
-s3_bucket = "com.mytiki.core.bucket"
-s3_prefix = "core/aws/authorizer/function"
+stack_name = "core-aws-authorizer-role"
+s3_bucket = "mytiki-core-ocean-cf-deploy"
+s3_prefix = "core/aws/authorizer/role"
 region = "us-east-2"
-
-[default.build.parameters]
-beta_features = true
-
-[default.sync.parameters]
-beta_features = true
 
 [default.deploy.parameters]
 confirm_changeset = false
 capabilities = [
     "CAPABILITY_IAM",
+    "CAPABILITY_NAMED_IAM",
     "CAPABILITY_AUTO_EXPAND"
 ]
 image_repositories = []

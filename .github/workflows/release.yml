@@ -4,8 +4,8 @@ on:
   pull_request:
     branches:
       - main
-    types:
-      - closed
+#    types:
+#      - closed
 
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   Deploy:
-    if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'release/')
+    #    if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'release/')
     runs-on: ubuntu-latest
     environment: Production
     permissions:
@@ -24,18 +24,31 @@ jobs:
 
       - name: SetVars
         run: |
-          sed -i 's/${AWS::AccountId}/${{ secrets.AWS_ACCOUNT_ID }}/' role/template.yml
+          sed -i 's/${AWS::AccountId}/${{ secrets.ACCOUNT_ID }}/' role/template.yml
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v2
+
+      - name: Setup Cargo Lambda
+        uses: zerj9/setup-cargo-lambda@v0.1.0
+
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
 
       - name: AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubDeployBase
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/GitHubDeployBase
           role-session-name: ${{ vars.SESSION_NAME }}
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: SAM Deploy Role
         run: |
-          cd role
+          cd infra/role
           sam build
           sam package
           sam deploy
@@ -43,12 +56,13 @@ jobs:
       - name: AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubDeployCoreOceanCatalog
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/deploy-core-aws-authorizer
           role-session-name: ${{ vars.SESSION_NAME }}
           aws-region: ${{ vars.AWS_REGION }}
 
-      - name: SAM Deploy Catalog
-        run: | 
+      - name: SAM Deploy Fnction
+        run: |
+          cd infra/function
           sam build
           sam package
           sam deploy
