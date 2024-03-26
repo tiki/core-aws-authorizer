@@ -66,11 +66,6 @@ impl Validate {
         if token.claims().expiration.is_some() { token.claims().validate_expiration(&time_options)?; }
         if token.claims().not_before.is_some() { token.claims().validate_maturity(&time_options)?; }
 
-        if token.claims().custom.aud().is_some() {
-            let aud = token.claims().custom.aud().clone().unwrap();
-            if !aud.contains(&self.audience) { return Err("Invalid aud claim".into()) }
-        }
-
         if token.claims().custom.iss().is_some() {
             let iss = token.claims().custom.iss().clone().unwrap();
             if iss != self.issuer { return Err("Invalid iss claim".into()); }
@@ -106,9 +101,10 @@ mod tests {
     
     #[test]
     fn decode_no_aud() {
-        let token = "eyJraWQiOiIwZDJkYmFkMC04MWY1LTQ2MjUtOTRhOC05MWU4Mzk1ODFhYzgiLCJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJodHRwczovL215dGlraS5jb20iLCJzdWIiOiJ1c2VyOjQzNTI1YzYyLTczNTMtNDI4ZS1iZDJkLTI1NjBhNmI0ZTk2NCIsImV4cCI6MTcxMDQ4NDg4MywiaWF0IjoxNzEwNDg0MjgzfQ.Mx5PvH_acQBja0oGsCjxcscXtM5Xp_wwnSvHg586HxHtmM8KEwarnyQ1tBliqrSYXTrwdbsYmzR0r0wePfJFig";
+        let token = "eyJraWQiOiIwZDJkYmFkMC04MWY1LTQ2MjUtOTRhOC05MWU4Mzk1ODFhYzgiLCJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJodHRwczovL215dGlraS5jb20iLCJzdWIiOiJhZGRyOmI0NDA1ZjhlLTMyMjItNGNiZi1hNzg3LTY5MTIzN2E4ZjFiNzo0NmlSaG9zdHQyeGZreVNyTkNCcDF2MGhfMDlVLTEwTEhDMGhLM2RBREEwIiwiYXVkIjoicHVibGlzaC5teXRpa2kuY29tIiwic2NwIjpbInB1Ymxpc2giXSwiZXhwIjoxNzExMDQwNjEyLCJpYXQiOjE3MTEwNDAwMTJ9.K9j3DKYAX1y5XtVYZr9a28kPA7WGHPSo8q5txORk06rdz5dUzL6nbDVeFdUL05VA7NKu52wj6qcJ7_G4tIoiLg";
         let validate = Validate::new_from_jwk(jwk(), issuer(), "dummy").unwrap();
         let token = validate.decode(token);
-        assert_eq!(token.is_ok(), true)
+        let claims = validate.claims(&token.unwrap());
+        assert_eq!(claims.is_ok(), true)
     }
 }
