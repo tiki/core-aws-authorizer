@@ -22,10 +22,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: SetVars
-        run: |
-          sed -i 's/${AWS::AccountId}/${{ secrets.ACCOUNT_ID }}/' role/template.yml
-
       - name: Checkout
         uses: actions/checkout@v4
 
